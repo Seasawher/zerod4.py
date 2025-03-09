@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Bandit:
@@ -21,6 +22,7 @@ class Bandit:
 
 class Agent:
     """行動選択を行うエージェント"""
+
     def __init__(self, epsilon, action_size=10):
         self.epsilon = epsilon
         self.Qs = np.zeros(action_size)
@@ -33,6 +35,8 @@ class Agent:
             reward (int): 報酬
         """
         self.ns[action] += 1
+
+        # 各マシンの評価値を更新
         self.Qs[action] += (reward - self.Qs[action]) / self.ns[action]
 
     def get_action(self):
@@ -43,9 +47,34 @@ class Agent:
 
 
 if __name__ == "__main__":
+    steps = 1000
+    epsilon = 0.1
+
     bandit = Bandit()
-    Q = 0
-    for n in range(1, 11):
-        reward = bandit.play(0)  # 0 番目のスロットマシンをプレイ
-        Q += (reward - Q) / n
-        print(Q)
+    agent = Agent(epsilon)
+    total_reward = 0
+    total_rewards = []
+    rates = []
+
+    for step in range(steps):
+        action = agent.get_action()  # 行動を選択
+        reward = bandit.play(action)  # スロットマシンをプレイ
+        agent.update(action, reward)  # 行動の評価値を更新
+        total_reward += reward
+
+        # 結果を記録
+        total_rewards.append(total_reward)
+        rates.append(total_reward / (step + 1))
+
+    # 結果をプロット
+    print("Total reward:", total_reward)
+
+    plt.ylabel("Total rewards")
+    plt.xlabel("Steps")
+    plt.plot(total_rewards)
+    plt.show()
+
+    plt.ylabel("Average rewards")
+    plt.xlabel("Steps")
+    plt.plot(rates)
+    plt.show()
